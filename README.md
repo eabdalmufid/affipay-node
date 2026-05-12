@@ -1,12 +1,12 @@
 # @affidev/affipay-node
 
-Official TypeScript SDK untuk integrasi API Affipay Payment Gateway.
+Official SDK untuk integrasi API Affipay Payment Gateway (QRIS). Bisa digunakan di **Node.js (>= 18)** baik dengan **TypeScript** maupun **JavaScript (ESM)**.
 
 ## Features
 
-- Simple API client untuk membuat pembayaran dan cek status.
-- Validasi input dasar agar integrasi lebih aman.
-- `baseUrl` opsional, default ke `https://pay.affidev.com`.
+- **Typed Response**: Autocomplete otomatis untuk TypeScript & JavaScript.
+- **Modern**: Menggunakan native Fetch API, ringan tanpa dependensi eksternal.
+- **Secure**: Validasi input dasar sebelum mengirim request ke API.
 
 ## Installation
 
@@ -16,26 +16,33 @@ npm install @affidev/affipay-node
 
 ## Quick Start
 
-```ts
+### TypeScript / JavaScript (ESM)
+```javascript
 import { createAffipayClient } from "@affidev/affipay-node";
 
 const client = createAffipayClient({
   apiKey: "api_key_project_kamu",
-  // baseUrl opsional, default: "https://pay.affidev.com"
 });
 
-const payment = await client.createPayment({
-  amount: 10000,
-  // field lain diteruskan apa adanya ke endpoint /api/create
-});
+try {
+  // 1. Membuat Transaksi QRIS
+  const payment = await client.createPayment({
+    amount: 50000,
+  });
+  console.log("QRIS String:", payment.qris_string);
+  console.log("Total Bayar:", payment.total); // Nominal + unique fee
 
-const status = await client.checkStatus(payment.reference_id);
+  // 2. Cek Status
+  const status = await client.checkStatus(payment.reference_id);
+  console.log("Status:", status.status); // pending, paid, expired
+} catch (error) {
+  console.error("Error:", error.message);
+}
 ```
 
-## API
+## API Reference
 
 ### `createAffipayClient(options)`
-
 Membuat instance client.
 
 | Option | Type | Required | Default |
@@ -44,15 +51,31 @@ Membuat instance client.
 | `baseUrl` | `string` | Tidak | `https://pay.affidev.com` |
 
 ### `client.createPayment(payload)`
-
-Membuat transaksi pembayaran.
-
-- `payload.amount` wajib berupa integer positif.
-- Field lain di payload akan diteruskan ke API.
+Mengembalikan `Promise<CreatePaymentResponse>`.
+- `payload.amount`: (Wajib) Integer positif.
 
 ### `client.checkStatus(referenceId)`
-
+Mengembalikan `Promise<CheckStatusResponse>`.
 Mengecek status transaksi berdasarkan `referenceId`.
+
+## Webhook / Callback
+
+Anda bisa menggunakan interface `AffipayWebhookPayload` untuk menangani callback di server Anda:
+
+```typescript
+// Contoh dengan Express (TypeScript)
+import { AffipayWebhookPayload } from "@affidev/affipay-node";
+
+app.post('/webhook', (req, res) => {
+  const data = req.body as AffipayWebhookPayload;
+
+  if (data.status === 'paid') {
+    console.log('Pembayaran Berhasil:', data.reference_id);
+  }
+  
+  res.json({ ok: true });
+});
+```
 
 ## Repository
 

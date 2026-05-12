@@ -2,6 +2,9 @@
   "name": "@affidev/affipay-node",
   "version": "1.0.0",
   "description": "SDK/client untuk integrasi payment gateway Affipay",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -11,9 +14,10 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"const fs = require('fs'); if (fs.existsSync('dist')) fs.rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch",
-    "prepublishOnly": "npm run build && npm pack --dry-run"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "affidev",

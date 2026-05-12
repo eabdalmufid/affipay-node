@@ -8,11 +8,51 @@ export type CreatePaymentPayload = {
   [key: string]: unknown;
 };
 
+export type AffipayStatus = "pending" | "paid" | "expired";
+
+export interface CreatePaymentResponse {
+  reference_id: string;
+  amount: number;
+  fee: number;
+  total: number;
+  qris_string: string;
+  expired_at: string;
+}
+
+export interface CheckStatusResponse {
+  reference_id: string;
+  amount: number;
+  fee: number;
+  total: number;
+  qris_string: string;
+  status: AffipayStatus;
+  created_at: string;
+  expired_at: string;
+  paid_at: string | null;
+}
+
+/**
+ * Interface untuk payload webhook callback dari Affipay.
+ */
+export interface AffipayWebhookPayload {
+  status: AffipayStatus;
+  amount: number;
+  reference_id: string;
+  paid_at?: string;
+  expired_at?: string;
+}
+
 export interface AffipayClient {
   baseUrl: string;
   apiKey: string;
-  createPayment<TResponse = unknown>(payload: CreatePaymentPayload): Promise<TResponse>;
-  checkStatus<TResponse = unknown>(referenceId: string): Promise<TResponse>;
+  /**
+   * Membuat transaksi pembayaran baru.
+   */
+  createPayment<TResponse = CreatePaymentResponse>(payload: CreatePaymentPayload): Promise<TResponse>;
+  /**
+   * Mengecek status transaksi berdasarkan referenceId.
+   */
+  checkStatus<TResponse = CheckStatusResponse>(referenceId: string): Promise<TResponse>;
 }
 
 const DEFAULT_BASE_URL = "https://pay.affidev.com";
