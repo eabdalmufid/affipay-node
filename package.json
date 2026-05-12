@@ -1,0 +1,50 @@
+{
+  "name": "@affidev/affipay-node",
+  "version": "1.0.0",
+  "description": "SDK/client untuk integrasi payment gateway Affipay",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json --watch",
+    "prepublishOnly": "npm run build && npm pack --dry-run"
+  },
+  "keywords": [
+    "affidev",
+    "affipay",
+    "payment-gateway",
+    "payment",
+    "indonesia"
+  ],
+  "author": {
+    "name": "eabdalmufid",
+    "email": "mail@affidev.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eabdalmufid/affipay-node"
+  },
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  },
+  "homepage": "https://github.com/eabdalmufid/affipay-node",
+  "bugs": {
+    "url": "https://github.com/eabdalmufid/affipay-node/issues"
+  }
+}
