@@ -8,27 +8,33 @@ export type CreatePaymentPayload = {
   [key: string]: unknown;
 };
 
-export type AffipayStatus = "pending" | "paid" | "expired";
+export type AffipayStatus = "pending" | "paid" | "expired" | "demo";
 
 export interface CreatePaymentResponse {
   reference_id: string;
   amount: number;
   fee: number;
+  unique_code: number;
   total: number;
+  net_amount: number;
   qris_string: string;
   expired_at: string;
+  fee_merchant: boolean;
 }
 
 export interface CheckStatusResponse {
   reference_id: string;
   amount: number;
   fee: number;
+  unique_code: number;
   total: number;
+  net_amount: number;
   qris_string: string;
   status: AffipayStatus;
   created_at: string;
   expired_at: string;
   paid_at: string | null;
+  fee_merchant: boolean;
 }
 
 /**
@@ -40,6 +46,7 @@ export interface AffipayWebhookPayload {
   reference_id: string;
   paid_at?: string;
   expired_at?: string;
+  demo?: boolean;
 }
 
 export interface AffipayClient {
