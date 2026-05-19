@@ -1,6 +1,6 @@
 {
   "name": "@affidev/affipay-node",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "SDK/client untuk integrasi payment gateway Affipay",
   "engines": {
     "node": ">=18.0.0"
