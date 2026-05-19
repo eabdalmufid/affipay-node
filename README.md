@@ -54,9 +54,34 @@ Membuat instance client.
 Mengembalikan `Promise<CreatePaymentResponse>`.
 - `payload.amount`: (Wajib) Integer positif.
 
+**Response Structure (`CreatePaymentResponse`):**
+- `reference_id` (string): Kode referensi transaksi.
+- `amount` (number): Nominal dasar transaksi.
+- `fee` (number): Biaya layanan (MDR 0.7%).
+- `unique_code` (number): Kode unik transaksi (+ / -).
+- `total` (number): Total yang harus dibayar oleh pembeli.
+- `net_amount` (number): Bersih yang didapat oleh merchant setelah potongan.
+- `qris_string` (string): QRIS payload string.
+- `expired_at` (string): Waktu kadaluarsa transaksi.
+- `fee_merchant` (boolean): Apakah merchant menanggung biaya.
+
 ### `client.checkStatus(referenceId)`
 Mengembalikan `Promise<CheckStatusResponse>`.
 Mengecek status transaksi berdasarkan `referenceId`.
+
+**Response Structure (`CheckStatusResponse`):**
+- `reference_id` (string): Kode referensi transaksi.
+- `amount` (number): Nominal dasar transaksi.
+- `fee` (number): Biaya layanan (MDR 0.7%).
+- `unique_code` (number): Kode unik transaksi.
+- `total` (number): Total yang dibayar.
+- `net_amount` (number): Bersih yang didapat merchant.
+- `qris_string` (string): QRIS payload string.
+- `status` (string): `'pending' | 'paid' | 'expired' | 'demo'`.
+- `created_at` (string): Waktu pembuatan.
+- `expired_at` (string): Waktu kadaluarsa.
+- `paid_at` (string | null): Waktu pembayaran (jika sukses).
+- `fee_merchant` (boolean): Apakah merchant menanggung biaya.
 
 ## Webhook / Callback
 
