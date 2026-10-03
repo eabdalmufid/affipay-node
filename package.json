@@ -1,7 +1,7 @@
 {
   "name": "@affidev/affipay",
   "version": "1.0.0",
-  "description": "Official SDK & client untuk integrasi payment gateway Affipay (QRIS Dinamis)",
+  "description": "Official SDK & client untuk integrasi pembayaran QRIS dinamis Affipay",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -22,7 +22,7 @@
   "keywords": [
     "affidev",
     "affipay",
-    "payment-gateway",
+    "qris-otomatis",
     "payment",
     "indonesia"
   ],

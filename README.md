@@ -1,11 +1,11 @@
 # @affidev/affipay
 
-Official SDK untuk integrasi API Affipay Payment Gateway (QRIS). Standar payment gateway modern yang sangat **simpel, cepat, dan mudah** digunakan oleh para developer di Node.js (>= 18), TypeScript, maupun JavaScript.
+Official SDK untuk integrasi API Affipay (QRIS Otomatis). Standar integrasi pembayaran modern yang sangat **simpel, cepat, dan mudah** digunakan oleh para developer di Node.js (>= 18), TypeScript, maupun JavaScript.
 
 ## Fitur Utama
 
 - **Endpoint Standar & Simpel**: Menggunakan endpoint resmi `/api/create`, `/api/status/:reference_id`, `/api/cancel/:reference_id`, dan `/api/qr/:reference_id.png`.
-- **Standar Payment Gateway**: Mendukung referensi invoice merchant (`order_id`) dan proteksi idempotensi (`idempotency_key`).
+- **Standar Pembayaran Modern**: Mendukung referensi invoice merchant (`order_id`) dan proteksi idempotensi (`idempotency_key`).
 - **HMAC-SHA256 Webhook Verification**: Proteksi keamanan callback bawaan dengan `verifyWebhook()`.
 - **Langsung Siap Pakai**: Mengembalikan `checkout_url` (halaman pembayaran) dan `qr_code_url` (gambar PNG QRIS siap tampil).
 
