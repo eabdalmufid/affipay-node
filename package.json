@@ -1,7 +1,7 @@
 {
-  "name": "@affidev/affipay-node",
-  "version": "1.1.0",
-  "description": "SDK/client untuk integrasi payment gateway Affipay",
+  "name": "@affidev/affipay",
+  "version": "1.0.0",
+  "description": "Official SDK & client untuk integrasi payment gateway Affipay (QRIS Dinamis)",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -45,7 +45,8 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "typescript": "^6.0.2"
+    "@types/node": "^22.10.1",
+    "typescript": "^5.6.3"
   },
   "homepage": "https://github.com/eabdalmufid/affipay-node",
   "bugs": {

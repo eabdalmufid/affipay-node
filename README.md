@@ -1,112 +1,133 @@
-# @affidev/affipay-node
+# @affidev/affipay
 
-Official SDK untuk integrasi API Affipay Payment Gateway (QRIS). Bisa digunakan di **Node.js (>= 18)** baik dengan **TypeScript** maupun **JavaScript (ESM)**.
+Official SDK untuk integrasi API Affipay Payment Gateway (QRIS). Standar payment gateway modern yang sangat **simpel, cepat, dan mudah** digunakan oleh para developer di Node.js (>= 18), TypeScript, maupun JavaScript.
 
-## Features
+## Fitur Utama
 
-- **Typed Response**: Autocomplete otomatis untuk TypeScript & JavaScript.
-- **Modern**: Menggunakan native Fetch API, ringan tanpa dependensi eksternal.
-- **Secure**: Validasi input dasar sebelum mengirim request ke API.
+- **Endpoint Standar & Simpel**: Menggunakan endpoint resmi `/api/create`, `/api/status/:reference_id`, `/api/cancel/:reference_id`, dan `/api/qr/:reference_id.png`.
+- **Standar Payment Gateway**: Mendukung referensi invoice merchant (`order_id`) dan proteksi idempotensi (`idempotency_key`).
+- **HMAC-SHA256 Webhook Verification**: Proteksi keamanan callback bawaan dengan `verifyWebhook()`.
+- **Langsung Siap Pakai**: Mengembalikan `checkout_url` (halaman pembayaran) dan `qr_code_url` (gambar PNG QRIS siap tampil).
 
-## Installation
+## Instalasi
 
 ```bash
-npm install @affidev/affipay-node
+npm install @affidev/affipay
 ```
 
 ## Quick Start
 
-### TypeScript / JavaScript (ESM)
-```javascript
-import { createAffipayClient } from "@affidev/affipay-node";
+```typescript
+import { createAffipayClient } from "@affidev/affipay";
 
-const client = createAffipayClient({
-  apiKey: "api_key_project_kamu",
+const affipay = createAffipayClient({
+  apiKey: "YOUR_AFFIPAY_API_KEY",
+  // baseUrl: "https://pay.affidev.com", // Opsional, default: https://pay.affidev.com
 });
 
-try {
-  // 1. Membuat Transaksi QRIS
-  const payment = await client.createPayment({
-    amount: 50000,
-  });
-  console.log("QRIS String:", payment.qris_string);
-  console.log("Total Bayar:", payment.total); // Nominal + unique fee
+// 1. Buat Transaksi QRIS Baru
+const payment = await affipay.createPayment({
+  amount: 50000,
+  order_id: "INV-2026-001", // Opsional: ID pesanan sistem toko Anda
+  idempotency_key: "req-abc-123", // Opsional: Mencegah tagihan ganda saat retry jaringan
+});
 
-  // 2. Cek Status
-  const status = await client.checkStatus(payment.reference_id);
-  console.log("Status:", status.status); // pending, paid, expired
-} catch (error) {
-  console.error("Error:", error.message);
+console.log("Kode Referensi:", payment.reference_id);
+console.log("Total Bayar:", payment.total);
+console.log("QRIS String:", payment.qris_string);
+console.log("URL Gambar QR (PNG):", payment.qr_code_url);
+console.log("Link Checkout:", payment.checkout_url);
+
+// 2. Cek Status Pembayaran (menggunakan reference_id unik)
+const status = await affipay.checkStatus(payment.reference_id);
+console.log("Status Pembayaran:", status.status); // "pending" | "paid" | "expired" | "cancelled"
+
+// 3. Batalkan Transaksi Pending (jika pesanan dibatalkan pembeli)
+// const cancelResult = await affipay.cancelPayment(payment.reference_id);
+// console.log(cancelResult.message);
+```
+
+## Callback Webhook & Verifikasi Signature
+
+Affipay mengirimkan HTTP POST secara real-time ke URL Webhook yang Anda daftarkan di dashboard setiap kali pembayaran berhasil lunas (`paid`) atau kedaluwarsa (`expired`), disertai header tanda tangan `X-Affipay-Signature`.
+
+Gunakan SDK untuk memvalidasi keaslian webhook secara aman:
+
+```typescript
+import express from "express";
+import { createAffipayClient } from "@affidev/affipay";
+
+const app = express();
+app.use(express.json());
+
+const affipay = createAffipayClient({
+  apiKey: process.env.AFFIPAY_API_KEY!,
+});
+
+app.post("/webhook", (req, res) => {
+  const signature = req.headers["x-affipay-signature"] as string;
+  const rawBody = JSON.stringify(req.body);
+
+  // Verifikasi keaslian signature webhook menggunakan Webhook Secret atau API Key
+  const isValid = affipay.verifyWebhook(rawBody, signature, process.env.AFFIPAY_WEBHOOK_SECRET);
+  if (!isValid) {
+    return res.status(403).send("Invalid signature");
+  }
+
+  const { status, reference_id, order_id, amount } = req.body;
+
+  if (status === "paid") {
+    console.log(`Order ${order_id || reference_id} sebesar Rp ${amount} telah lunas!`);
+    // Lakukan proses pemenuhan pesanan (misal: aktifkan akun, kirim voucher)
+  }
+
+  res.status(200).send("OK");
+});
+
+app.listen(3000, () => console.log("Webhook server running on port 3000"));
+```
+
+## Referensi API SDK
+
+| Metode | HTTP Target | Deskripsi |
+| :--- | :--- | :--- |
+| `createPayment(payload)` | `POST /api/create` | Membuat tagihan QRIS dinamis baru dengan nominal, kode unik, & QR string. |
+| `checkStatus(referenceId)` | `GET /api/status/:reference_id` | Mengecek status transaksi terkini berdasarkan reference ID unik. |
+| `getPayment(referenceId)` | `GET /api/status/:reference_id` | Alias untuk `checkStatus()`. |
+| `cancelPayment(referenceId)` | `POST /api/cancel/:reference_id` | Membatalkan transaksi pending berdasarkan reference ID unik. |
+| `getCheckoutUrl(referenceId)` | — | Mendapatkan URL halaman checkout langsung untuk reference ID tertentu. |
+| `getQrCodeUrl(referenceId)` | — | Mendapatkan URL langsung gambar PNG QRIS untuk reference ID tertentu. |
+| `verifyWebhook(rawBody, sig, secret?)` | — | Memvalidasi HMAC-SHA256 signature dari header `X-Affipay-Signature`. |
+
+## TypeScript Interfaces
+
+```typescript
+export type AffipayStatus = "pending" | "paid" | "expired" | "demo" | "cancelled";
+
+export interface CreatePaymentPayload {
+  amount: number;
+  order_id?: string;
+  idempotency_key?: string;
+}
+
+export interface PaymentResponse {
+  status: AffipayStatus;
+  reference_id: string;
+  external_id?: string;
+  order_id?: string | null;
+  amount: number;
+  fee: number;
+  unique_code: number;
+  total: number;
+  net_amount: number;
+  qris_string: string;
+  checkout_url: string;
+  qr_code_url: string;
+  created_at?: string;
+  expired_at: string;
+  paid_at?: string | null;
 }
 ```
 
-## API Reference
-
-### `createAffipayClient(options)`
-Membuat instance client.
-
-| Option | Type | Required | Default |
-| --- | --- | --- | --- |
-| `apiKey` | `string` | Ya | - |
-| `baseUrl` | `string` | Tidak | `https://pay.affidev.com` |
-
-### `client.createPayment(payload)`
-Mengembalikan `Promise<CreatePaymentResponse>`.
-- `payload.amount`: (Wajib) Integer positif.
-
-**Response Structure (`CreatePaymentResponse`):**
-- `reference_id` (string): Kode referensi transaksi.
-- `amount` (number): Nominal dasar transaksi.
-- `fee` (number): Biaya layanan (MDR 0.7%).
-- `unique_code` (number): Kode unik transaksi (+ / -).
-- `total` (number): Total yang harus dibayar oleh pembeli.
-- `net_amount` (number): Bersih yang didapat oleh merchant setelah potongan.
-- `qris_string` (string): QRIS payload string.
-- `expired_at` (string): Waktu kadaluarsa transaksi.
-- `fee_merchant` (boolean): Apakah merchant menanggung biaya.
-
-### `client.checkStatus(referenceId)`
-Mengembalikan `Promise<CheckStatusResponse>`.
-Mengecek status transaksi berdasarkan `referenceId`.
-
-**Response Structure (`CheckStatusResponse`):**
-- `reference_id` (string): Kode referensi transaksi.
-- `amount` (number): Nominal dasar transaksi.
-- `fee` (number): Biaya layanan (MDR 0.7%).
-- `unique_code` (number): Kode unik transaksi.
-- `total` (number): Total yang dibayar.
-- `net_amount` (number): Bersih yang didapat merchant.
-- `qris_string` (string): QRIS payload string.
-- `status` (string): `'pending' | 'paid' | 'expired' | 'demo'`.
-- `created_at` (string): Waktu pembuatan.
-- `expired_at` (string): Waktu kadaluarsa.
-- `paid_at` (string | null): Waktu pembayaran (jika sukses).
-- `fee_merchant` (boolean): Apakah merchant menanggung biaya.
-
-## Webhook / Callback
-
-Anda bisa menggunakan interface `AffipayWebhookPayload` untuk menangani callback di server Anda:
-
-```typescript
-// Contoh dengan Express (TypeScript)
-import { AffipayWebhookPayload } from "@affidev/affipay-node";
-
-app.post('/webhook', (req, res) => {
-  const data = req.body as AffipayWebhookPayload;
-
-  if (data.status === 'paid') {
-    console.log('Pembayaran Berhasil:', data.reference_id);
-  }
-  
-  res.json({ ok: true });
-});
-```
-
-## Repository
-
-- Source: https://github.com/eabdalmufid/affipay-node
-- Issues: https://github.com/eabdalmufid/affipay-node/issues
-
-## License
-
-[MIT](LICENSE)
+## Lisensi
+MIT
